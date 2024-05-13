@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mastermind (brainrot game)</title>
+<style>
+    .board {
+        display: flex;
+        flex-wrap: wrap;
+        width: 300px;
+        margin: 0 auto;
+    }
+    .peg {
+        width: 30px;
+        height: 30px;
+        margin: 2px;
+        border-radius: 50%;
+        cursor: pointer;
+    }
+    .smallPeg {
+        width: 10px;
+        height: 10px;
+        margin: 2px;
+        border-radius: 50%;
+    }
+    body {
+        background-color: darkgray;
+    }
+    button {
+        display: flex;
+        margin: 0 auto;
+    }
+    p{
+        text-align: center;
+    }
+    #boards {
+        padding: 40px;
+    }
+    #triesLeft {
+        color: red;
+    }
+</style>
+</head>
+<body>
+    <p>colour picker:</p>
+    <div id="colorPicker" class="board"></div>
+    <div id="boards"></div>
+    <p id="triesLeft">10 tries left</p>
+    <button onclick="checkGuess()">Check Guess</button>
+<script>
+    const colors = ['red', 'green', 'blue', 'yellow', 'purple', 'orange', 'black', 'white'];
+    const codeLength = 4;
+    let secretCode = generateSecretCode();
+    console.log(secretCode);
+    let currentGuess = [];
+    let boardCounter = 1;
+
+    const GUESS_LIMIT = 10;
+
+    function generateSecretCode() {
+        return Array.from({ length: codeLength }, () => colors[Math.floor(Math.random() * colors.length)]);
+    }
+
+    function createBoard() {
+        const boards = document.getElementById('boards');
+        var board = document.createElement("div");
+        board.id = "board" + boardCounter;
+        board.classList.add("board");
+        boards.appendChild(board);
+    }
+
+    function init() {
+        const colorPicker = document.getElementById('colorPicker');
+        colorPicker.innerHTML = '';
+        for (let i = 0; i < colors.length; i++) {
+            const peg = document.createElement('div');
+            peg.className = 'peg';
+            peg.style.backgroundColor = colors[i];
+            peg.addEventListener('click', () => addColorToGuess(colors[i]));
+            colorPicker.appendChild(peg);
+        }
+
+        createBoard();
+    }
+
+    function addColorToGuess(color) {
+        if (currentGuess.length < codeLength) {
+            currentGuess.push(color);
+            updateGuessDisplay();
+        }
+    }
+
+    function removeColorToGuess(index) {
+        currentGuess.splice(index, 1);
+        updateGuessDisplay();
+    }
+
+    function updateGuessDisplay() {
+        const board = document.getElementById('board'+boardCounter);
+        board.innerHTML = '';
+        for (let i = 0; i < currentGuess.length; i++) {
+            const peg = document.createElement('div');
+            peg.className = 'peg';
+            peg.style.backgroundColor = currentGuess[i];
+            peg.addEventListener('click', () => removeColorToGuess(i));
+            board.appendChild(peg);
+        }
+    }
+
+    function updateResultDisplay(res) {
+        const board = document.getElementById('board'+boardCounter);
+        for (let i = 0; i < res.length; i++) {
+            const peg = document.createElement('div');
+            peg.className = 'smallPeg';
+            peg.style.backgroundColor = res[i];
+            board.appendChild(peg);
+        }
+    }
+
+    function checkGuess() {
+        if (currentGuess.length !== codeLength) {
+            alert('Please complete your guess before checking!');
+            return;
+        }
+
+        let correctPositionAndColor = 0;
+        let correctColor = 0;
+
+        let tmpCurrentGuess = [...currentGuess];
+        let tmpSecretCode = [...secretCode];
+
+        // check for right colour right pos
+        for (let i = 0; i < codeLength; i++) {
+            if (tmpSecretCode[i] === tmpCurrentGuess[i]) {
+                correctPositionAndColor++;
+                tmpCurrentGuess[i]='NA';
+                tmpSecretCode[i]='NA';
+            }
+        }
+
+        // check for right colour wrong pos
+        for (let i = 0; i < codeLength; i++) {
+            if (tmpSecretCode[i]!="NA"){
+                if (tmpCurrentGuess.includes(tmpSecretCode[i])){
+                    correctColor++;
+                    tmpCurrentGuess[tmpCurrentGuess.indexOf(tmpSecretCode[i])]='NA';
+                }
+            }
+        }
+
+        const res = [];
+        for (let i=0; i<correctPositionAndColor; i++) {
+            res.push('black');
+        }
+
+        for (let i=0; i<correctColor; i++) {
+            res.push('white');
+        }
+
+        updateResultDisplay(res);
+
+        if (correctPositionAndColor === codeLength) {
+            alert('Congratulations! You cracked the code!');
+            return;
+        }
+
+        // alert(`Correct position and color: ${correctPositionAndColor}\nCorrect color only: ${correctColor}`);
+
+        if ( boardCounter < GUESS_LIMIT) {
+            if (boardCounter===9) {
+                document.getElementById('triesLeft').innerHTML = 'last try.. cmon bro..';
+            }else{
+                document.getElementById('triesLeft').innerHTML = `${10 - boardCounter} tries left`;
+            }
+                
+            boardCounter++;
+            createBoard();
+            currentGuess = [];
+        } else {
+            alert('You lost! Boo!');
+        }
+    }
+
+    window.onload = function () {
+        init();
+        alert('Rules:\nGuess the 4 randomly generated colours out of 8 avaialble colours\nRepeated colours are possible\nYou have 10 tries\n\nHow to play:\nClick on a colour from colour picker to choose\nClick on your selected colour to remove\nBlack dot means right colour right place\nWhite dot means right colour wrong place');
+    };
+</script>
+</body>
+</html>
