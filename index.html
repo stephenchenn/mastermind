@@ -43,7 +43,7 @@
 </style>
 </head>
 <body>
-    <p>colour picker::</p>
+    <p>colour picker:</p>
     <div id="colorPicker" class="board"></div>
     <div id="boards"></div>
     <p id="triesLeft">10 tries left</p>
@@ -110,11 +110,18 @@
 
     function updateResultDisplay(res) {
         const board = document.getElementById('board'+boardCounter);
-        for (let i = 0; i < res.length; i++) {
-            const peg = document.createElement('div');
-            peg.className = 'smallPeg';
-            peg.style.backgroundColor = res[i];
-            board.appendChild(peg);
+        if (res.length === 0) {
+            const na = document.createElement('span');
+            na.innerHTML = 'N/A';
+            na.style.fontSize = '10px';
+            board.appendChild(na);
+        }else {
+            for (let i = 0; i < res.length; i++) {
+                const peg = document.createElement('div');
+                peg.className = 'smallPeg';
+                peg.style.backgroundColor = res[i];
+                board.appendChild(peg);
+            }
         }
     }
 
@@ -184,7 +191,7 @@
 
     window.onload = function () {
         init();
-        alert('Rules:\nGuess the 4 randomly generated colours out of 8 avaialble colours\nRepeated colours are possible\nYou have 10 tries\n\nHow to play:\nClick on a colour from colour picker to choose\nClick on your selected colour to remove\nBlack dot means right colour right place\nWhite dot means right colour wrong place');
+        alert('Rules:\nGuess the 4 randomly generated colours and their positions\nRepeated colours are possible\nYou have 10 tries\n\nHow to play:\nClick on a colour from colour picker to choose\nClick on your selected colour to remove\nBlack dot means right colour right place\nWhite dot means right colour wrong place');
     };
 </script>
 </body>
