@@ -40,12 +40,16 @@
     #triesLeft {
         color: red;
     }
+    #ansTag {
+        display: none;
+    }
 </style>
 </head>
 <body>
     <p>colour picker:</p>
     <div id="colorPicker" class="board"></div>
     <div id="boards"></div>
+    <div id="ansReveal"><p id="ansTag">answer:</p></div>
     <p id="triesLeft">10 tries left</p>
     <button onclick="checkGuess()">Check Guess</button>
 <script>
@@ -57,6 +61,7 @@
     let boardCounter = 1;
 
     const GUESS_LIMIT = 10;
+    var endGame = false;
 
     function generateSecretCode() {
         return Array.from({ length: codeLength }, () => colors[Math.floor(Math.random() * colors.length)]);
@@ -97,7 +102,7 @@
     }
 
     function updateGuessDisplay() {
-        const board = document.getElementById('board'+boardCounter);
+        const board = document.getElementById('board' + boardCounter);
         board.innerHTML = '';
         for (let i = 0; i < currentGuess.length; i++) {
             const peg = document.createElement('div');
@@ -125,11 +130,47 @@
         }
     }
 
+    function removeAllEventListeners(divId) {
+        var div = document.getElementById(divId);
+        var elements = div.getElementsByTagName("*");
+
+        for (var i = 0; i < elements.length; i++) {
+          var element = elements[i];
+          var clone = element.cloneNode(true);
+          clone.style.cursor = 'auto';
+
+          element.parentNode.replaceChild(clone, element);
+        }
+    }
+
+    function revealResult() {
+        var ansDiv = document.getElementById('ansReveal');
+        var board = document.createElement("div");
+        board.classList.add("board");
+        ansDiv.appendChild(board);
+        document.getElementById('ansTag').style.display = 'block';
+        for (let i = 0; i < secretCode.length; i++) {
+            const peg = document.createElement('div');
+            peg.className = 'peg';
+            peg.style.backgroundColor = secretCode[i];
+            peg.addEventListener('click', () => removeColorToGuess(i));
+            board.appendChild(peg);
+        }
+    }
+
     function checkGuess() {
+
+        if (endGame) {
+            alert('You lost! Boo!');
+            return;
+        }
+
         if (currentGuess.length !== codeLength) {
             alert('Please complete your guess before checking!');
             return;
         }
+
+        removeAllEventListeners('board' + boardCounter);
 
         let correctPositionAndColor = 0;
         let correctColor = 0;
@@ -169,23 +210,27 @@
 
         if (correctPositionAndColor === codeLength) {
             alert('Congratulations! You cracked the code!');
+            document.getElementById('triesLeft').innerHTML = "you've won!";
+            document.getElementById('triesLeft').style.color = "green";
             return;
         }
 
-        // alert(`Correct position and color: ${correctPositionAndColor}\nCorrect color only: ${correctColor}`);
+        if (boardCounter===9) {
+            document.getElementById('triesLeft').innerHTML = 'last try.. cmon bro..';
+        } else if (boardCounter===GUESS_LIMIT) {
+            document.getElementById('triesLeft').innerHTML = "you've lost!";
+            revealResult();
+        } else {
+            document.getElementById('triesLeft').innerHTML = `${GUESS_LIMIT - boardCounter} tries left`;
+        }
 
-        if ( boardCounter < GUESS_LIMIT) {
-            if (boardCounter===9) {
-                document.getElementById('triesLeft').innerHTML = 'last try.. cmon bro..';
-            }else{
-                document.getElementById('triesLeft').innerHTML = `${10 - boardCounter} tries left`;
-            }
-                
+        if ( boardCounter < GUESS_LIMIT) {  
             boardCounter++;
             createBoard();
             currentGuess = [];
         } else {
             alert('You lost! Boo!');
+            endGame = true;
         }
     }
 
